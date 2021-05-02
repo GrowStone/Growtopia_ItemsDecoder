@@ -92,6 +92,7 @@ int main()
 		string texture2 = "";
 		string extraOptions2 = "";
 		string punchOptions = "";
+		int clockDivider = 0;
 		{
 			memcpy(&itemID, data + memPos, 4);
 			memPos += 4;
@@ -267,8 +268,17 @@ int main()
 			}
 		}
 		if(itemsdatVersion >= 12) {
-			// TODO: find what those data mean
+			// Not really useful data, fixed size, can skip.
 			memPos += 13;
+		}
+		if(itemsdatVersion >= 13) {
+			// Clock Divider - floor(24 / x), client-selfreport to server with local time
+			// This info shouldn't be in items.dat, but it's used to build indexes for
+			// item states when querying server. e.g. Plasma Heart has value of 5
+			// So an item state changes every 4 hours for it. Due to it having 3 states
+			// it will loop on hours 0-3 and 20-23, making "Blue" the most common state.
+			memcpy(&clockDivider, data + memPos, 4);
+			memPos += 4;
 		}
 		if (i != itemID)
 			cout << "Item are unordered!" << endl;
@@ -312,6 +322,7 @@ int main()
 		j["texture2"] = texture2;
 		j["extraOptions2"] = extraOptions2;
 		j["punchOptions"] = punchOptions;
+		j["clockDivider"] = clockDivider;
 		jdata["items"].push_back(j);
 	}
 	std::ofstream o("data.json");
